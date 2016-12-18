@@ -32,6 +32,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.staticfiles',
 
+    'parler',
+
     'oauth2_provider',
     'oidc_provider',
     'users',
@@ -57,6 +59,7 @@ INSTALLED_APPS = (
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -107,11 +110,10 @@ DATABASES = {
 LANGUAGE_CODE = 'fi'
 
 LANGUAGES = (
-    ('fi', 'suomi'),
+    ('fi', 'Finnish'),
     ('en', 'English'),
-    ('sv', 'svenska')
+    ('sv', 'Swedish')
 )
-
 
 TIME_ZONE = 'UTC'
 
@@ -136,8 +138,12 @@ STATICFILES_DIRS = (
 
 STATIC_URL = '/sso/static/'
 
+#SITE_URL = 'https://api.hel.fi/sso'
+SITE_URL = 'http://localhost:8000'
+
 SITE_ID = 1
 
+PARLER_LANGUAGES = {SITE_ID: [{'code': code} for (code, name) in LANGUAGES]}
 
 LOGGING = {
     'version': 1,
@@ -240,7 +246,7 @@ SOCIALACCOUNT_PROVIDERS = {
 
 # django-oidc-provider settings for OpenID Connect support
 OIDC_IDTOKEN_SUB_GENERATOR = 'helsso.oidc.sub_generator'
-OIDC_EXTRA_SCOPE_CLAIMS = 'helsso.oidc.GithubScopeClaims'
+OIDC_EXTRA_SCOPE_CLAIMS = 'helsso.oidc.CombinedScopeClaims'
 
 # local_settings.py can be used to override environment-specific settings
 # like database and email that differ between development and production.

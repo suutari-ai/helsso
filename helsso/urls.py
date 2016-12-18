@@ -1,3 +1,4 @@
+import oauth2_provider.urls
 import oidc_provider.urls
 from django.conf import settings
 from django.conf.urls import include, url
@@ -26,7 +27,7 @@ urlpatterns = [
     url(r'^accounts/profile/', show_login),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^oauth2/applications/', permission_denied),
-    url(r'^oauth2/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    url(r'^oauth2/', include(oauth2_provider.urls, namespace='oauth2_provider')),
     url(r'^openid/', include(oidc_provider.urls, namespace='oidc_provider')),
     url(r'^user/(?P<username>[\w.@+-]+)/?$', UserView.as_view()),
     url(r'^user/$', UserView.as_view()),

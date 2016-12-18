@@ -1,10 +1,12 @@
 django
+django-multiselectfield
 django-oauth-toolkit
 django-oidc-provider>=0.4.4
+django-parler
 django-cors-headers
 djangorestframework
 pyjwt
--e git+https://github.com/City-of-Helsinki/django-helusers.git@v0.2.1#egg=django-helusers==0.2.1
+-e git+https://github.com/City-of-Helsinki/django-helusers.git@v0.2.3#egg=django-helusers==0.2.3
 django-allauth
 django-bootstrap3
 psycopg2
