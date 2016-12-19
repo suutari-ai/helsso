@@ -1,12 +1,12 @@
 import hashlib
-import uuid
 import logging
+import uuid
+
+from django.conf import settings
 from djangosaml2.backends import Saml2Backend
 
-logger = logging.getLogger(__name__)
 
-# FIXME: put into settings.py
-domain_uuid = uuid.UUID('1c8974a1-1f86-41a0-85dd-94a643370621')
+logger = logging.getLogger(__name__)
 
 
 class HelsinkiBackend(Saml2Backend):
@@ -23,6 +23,7 @@ class HelsinkiBackend(Saml2Backend):
             attrs['firstName'] = [' '.join(names[1:])]
 
         if 'primarySID' in attrs:
+            domain_uuid = uuid.UUID(settings.ADFS_DOMAIN_UUID)
             user_uuid = uuid.uuid5(domain_uuid, attrs['primarySID'][0]).hex
             attrs['uuid'] = [user_uuid]
 

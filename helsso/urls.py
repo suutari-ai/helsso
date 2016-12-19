@@ -22,8 +22,30 @@ def show_login(request):
     return HttpResponse(html)
 
 
+def show_profile(request):
+    logged_in_as = ''
+    if request.user.is_authenticated:
+        logged_in_as = 'Logged in as %s (UUID=%s, username=%s)' % (
+            request.user.email, request.user.uuid, request.user.username)
+    else:
+        logged_in_as = 'Not logged in'
+    html = (
+        '<html><body>'
+        + logged_in_as + '<br>'
+        '<a href="/login/">Login</a><br>'
+        '<a href="/logout/">Logout</a><br>'
+        '<a href="/accounts/login/">Accounts Login</a><br>'
+        '<a href="/accounts/logout/">Accounts Logout</a><br>'
+        '<a href="/accounts/email/">Emails</a><br>'
+        '<a href="/accounts/password/change/">Change password</a><br>'
+        '<a href="/accounts/social/connections">Account connections</a><br>'
+    )
+    return HttpResponse(html)
+
+
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^profile/', show_profile),
     url(r'^accounts/profile/', show_login),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^oauth2/applications/', permission_denied),
