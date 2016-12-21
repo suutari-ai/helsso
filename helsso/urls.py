@@ -1,3 +1,4 @@
+import allauth.urls
 import oauth2_provider.urls
 import oidc_provider.urls
 from django.conf import settings
@@ -7,7 +8,7 @@ from django.contrib.staticfiles import views as static_views
 from django.http import HttpResponse
 from django.views.defaults import permission_denied
 
-from users.views import LoginView, LogoutView
+from users.views import EmailNeededView, LoginView, LogoutView
 
 from .api import GetJWTView, UserView
 
@@ -47,7 +48,9 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^profile/', show_profile),
     url(r'^accounts/profile/', show_login),
-    url(r'^accounts/', include('allauth.urls')),
+    url(r'^accounts/login/', LoginView.as_view()),
+    url(r'^accounts/logout/', LogoutView.as_view()),
+    url(r'^accounts/', include(allauth.urls)),
     url(r'^oauth2/applications/', permission_denied),
     url(r'^oauth2/', include(oauth2_provider.urls, namespace='oauth2_provider')),
     url(r'^openid/', include(oidc_provider.urls, namespace='oidc_provider')),
@@ -55,7 +58,8 @@ urlpatterns = [
     url(r'^user/$', UserView.as_view()),
     url(r'^jwt-token/$', GetJWTView.as_view()),
     url(r'^login/$', LoginView.as_view()),
-    url(r'^logout/$', LogoutView.as_view())
+    url(r'^logout/$', LogoutView.as_view()),
+    url(r'^email-needed/$', EmailNeededView.as_view(), name='email_needed'),
 ]
 
 if settings.DEBUG:
