@@ -16,7 +16,7 @@ django-braces==1.10.0     # via django-oauth-toolkit
 django-cors-headers==1.3.1
 django-multiselectfield==0.1.4
 django-oauth-toolkit==0.10.0
-django-oidc-provider==0.4.4
+git+https://github.com/suutari-ai/django-oidc-provider.git@token-module#egg=django-oidc-provider==0.4.4
 django-parler==1.7
 django==1.10.3
 djangorestframework==3.5.3

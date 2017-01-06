@@ -1,7 +1,31 @@
 from django.utils.translation import ugettext_lazy as _
 from oidc_provider.lib.claims import ScopeClaims, StandardScopeClaims
+from oidc_provider.lib.utils.token import TokenModule
 
 from hkijwt.models import ApiPermission
+
+
+class HelssoTokenModule(TokenModule):
+    def create_id_token(self, user, client, nonce='', at_hash='',
+                        request=None, scope=[]):
+        data = super(HelssoTokenModule, self).create_id_token(
+            user, client, nonce, at_hash, request, scope)
+        userinfo = get_userinfo(user, scope, client)
+        data.update(userinfo)
+        api_scopes = set(x for x in scope if x.startswith('api-'))
+        api_data = ApiPermission.get_api_data(api_scopes, client, user, scope)
+        data['azp'] = client.client_id
+        data['aud'] = [client.client_id] + api_data['aud']
+        data['api_perms'] = api_data['perms']
+        return data
+
+    def client_id_from_id_token(self, id_token):
+        payload = JWT().unpack(id_token).payload()
+        # See https://stackoverflow.com/questions/32013835
+        azp = payload.get('azp', None)  # azp = Authorized Party
+        aud = payload.get('aud', None)
+        first_aud = aud[0] if isinstance(aud, list) else aud
+        return azp if azp else first_aud
 
 
 def sub_generator(user):
@@ -41,6 +65,7 @@ class ApiTokensScopeClaims(ScopeClaims):
 
     def create_response_dic(self):
         result = super(ApiTokensScopeClaims, self).create_response_dic()
+        return result
         api_scopes = set(x for x in self.scopes if x.startswith('api-'))
         api_tokens = ApiPermission.get_api_tokens(
             api_scopes, self.client, self.user, self.scopes)
@@ -69,37 +94,35 @@ class CombinedScopeClaims(ScopeClaims):
 
     def create_response_dic(self):
         result = super(CombinedScopeClaims, self).create_response_dic()
-        fake_token = _ClaimsTokenAdapter(self)
+        token = FakeToken.from_claims(self)
         for claim_cls in self.combined_scope_claims:
-            claim = claim_cls(fake_token)
+            claim = claim_cls(token)
             result.update(claim.create_response_dic())
         return result
 
 
-class _ClaimsTokenAdapter(object):
-    """
-    Object that adapts a token, created from a claims object.
-
-    ScopeClaims constructor needs a token, but does not store it.  This
-    adapter makes it possible to create a token like object from a
-    claims object, allowing it to be passed for another ScopeClaims
-    constructor.
-    """
-    def __init__(self, claims):
-        self.user = claims.user
-        self.scope = claims.scopes
-        self.client = claims.client
-
-
 class FakeToken(object):
-    pass
+    """
+    Object that adapts a token.
+
+    ScopeClaims constructor needs a token, but really uses just its
+    user, scope and client attributes.  This adapter makes it possible
+    to create a token like object from those three attributes or from a
+    claims object (which doesn't store the token) allowing it to be
+    passed to a ScopeClaims constructor.
+    """
+    def __init__(self, user, scope, client):
+        self.user = user
+        self.scope = scope
+        self.client = client
+
+    @classmethod
+    def from_claims(cls, claims):
+        return cls(claims.user, claims.scopes, claims.client)
 
 
 def get_userinfo(user, scopes, client=None):
-    token = FakeToken()
-    token.user = user
-    token.scope = scopes
-    token.client = client
+    token = FakeToken(user, scopes, client)
     result = {}
     result.update(StandardScopeClaims(token).create_response_dic())
     result.update(CombinedScopeClaims(token).create_response_dic())

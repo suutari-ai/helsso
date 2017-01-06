@@ -61,7 +61,7 @@ class Api(AutoFilledIdentifier, ImmutableFields, models.Model):
         return ' '.join(self.scopes)
     scopes_string.short_description = _("scopes")
 
-    def get_granted_scopes(self, all_granted_scopes):
+    def get_granted_scopes(self, all_granted_scopes):#TODO: Remove ################################
         wanted = set(self.scopes)
         granted = set(all_granted_scopes)
         result = wanted.intersection(granted)
@@ -70,6 +70,14 @@ class Api(AutoFilledIdentifier, ImmutableFields, models.Model):
                 "API '%s' needs these ungranted scopes: %s",
                 self, wanted - result)
         return result
+
+    def check_granted_scopes(self, granted_scopes):
+        missing = set(self.scopes) - set(granted_scopes)
+        if missing:
+            LOG.warning(
+                "API '%s' needs these ungranted scopes: %s",
+                self, missing)
+        return missing
 
     def _generate_identifier(self):
         return re.sub('[^a-z-]', '', slugify(
@@ -125,6 +133,18 @@ class ApiPermission(AutoFilledIdentifier, ImmutableFields, TranslatableModel):
                 user, api.audience, perm_identifiers,
                 api.get_granted_scopes(granted_scopes))
             for (api, perm_identifiers) in perms_by_api.items()
+        }
+
+    @classmethod
+    def get_api_data(cls, permissions, client, user, granted_scopes):
+        allowed_perms = cls.objects.filter(
+            identifier__in=permissions, allowed_apps=client)
+        apis = set(perm.api for perm in allowed_perms)
+        for api in apis:
+            api.check_granted_scopes(granted_scopes)
+        return {
+            'aud': sorted(api.audience for api in apis),
+            'perms': [perm.identifier for perm in allowed_perms],
         }
 
     def _generate_identifier(self):
