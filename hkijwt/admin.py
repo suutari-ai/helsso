@@ -2,7 +2,8 @@ from django.contrib import admin
 from parler.admin import TranslatableAdmin
 
 from .models import (
-    Api, ApiPermission, ApiPermissionTranslation, AppToAppPermission)
+    Api, ApiDomain, ApiPermission, ApiPermissionTranslation,
+    AppToAppPermission)
 
 
 class DontRequireIdentifier(object):
@@ -15,9 +16,14 @@ class DontRequireIdentifier(object):
         return field
 
 
+@admin.register(ApiDomain)
+class ApiDomainAdmin(admin.ModelAdmin):
+    list_display = ['identifier']
+
+
 @admin.register(Api)
 class ApiAdmin(admin.ModelAdmin):
-    list_display = ['identifier', 'audience', 'scopes_string']
+    list_display = ['domain', 'name', 'scopes_string']
 
 
 @admin.register(ApiPermission)

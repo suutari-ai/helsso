@@ -16,32 +16,22 @@ class HelssoTokenModule(TokenModule):
                         request=None, scope=[]):
         data = super(HelssoTokenModule, self).create_id_token(
             user, client, nonce, at_hash, request, scope)
-        api_perms_for_client = (
+        api_perms = (
             ApiPermission.objects
             .by_identifiers(scope)
             .allowed_for_client(client))
-        apis = {api_perm.api for api_perm in api_perms_for_client}
+        apis = {api_perm.api for api_perm in api_perms}
         extended_scope = sorted(
             set(scope) |
             set(sum((list(api.scopes) for api in apis), [])))
         userinfo = get_userinfo(user, extended_scope, client)
         data.update(userinfo)
-        allowed_apis = set()
-        for api in apis:
-            missing_scopes = api.get_missing_scopes(scope)
-            if not missing_scopes:
-                allowed_apis.add(api)
-            else:
-                LOG.warning(
-                    "API '%s' needs these ungranted scopes: %s",
-                    api, missing_scopes)
         data['azp'] = client.client_id
-        api_audiences = sorted(api.audience for api in allowed_apis)
+        api_audiences = sorted(api.identifier for api in apis)
         data['aud'] = [client.client_id] + api_audiences
-        allowed_perms = sorted(
-            api_perm.identifier for api_perm in api_perms_for_client
-            if api_perm.api in allowed_apis)
-        data['api_perms'] = allowed_perms
+        for api_perm in api_perms:
+            field = api_perm.api.domain.identifier
+            data.setdefault(field, []).append(api_perm.relative_identifier)
         return data
 
     def client_id_from_id_token(self, id_token):
@@ -76,7 +66,7 @@ class ApiTokensScopeClaims(ScopeClaims):
     def get_scopes_info(cls, scopes=[]):
         api_perms_by_identifier = {
             api_perm.identifier: api_perm
-            for api_perm in ApiPermission.objects.filter(identifier__in=scopes)
+            for api_perm in ApiPermission.objects.by_identifiers(scopes)
         }
         api_perms = (api_perms_by_identifier.get(scope) for scope in scopes)
         return [
@@ -87,16 +77,6 @@ class ApiTokensScopeClaims(ScopeClaims):
             }
             for api_perm in api_perms if api_perm
         ]
-
-    def create_response_dic(self):
-        result = super(ApiTokensScopeClaims, self).create_response_dic()
-        return result
-        api_scopes = set(x for x in self.scopes if x.startswith('api-'))
-        api_tokens = ApiPermission.get_api_tokens(
-            api_scopes, self.client, self.user, self.scopes)
-        for (api_identifier, token) in api_tokens.items():
-            result['api-' + api_identifier] = token
-        return result
 
 
 class CombinedScopeClaims(ScopeClaims):

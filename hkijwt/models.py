@@ -10,6 +10,7 @@ from django.utils.translation import ugettext_lazy as _
 from multiselectfield import MultiSelectField
 from oidc_provider.models import Client
 from parler.fields import TranslatedField
+from parler.managers import TranslatableQuerySet
 from parler.models import TranslatableModel, TranslatedFieldsModel
 
 from .apikey import generate_api_token
@@ -35,7 +36,7 @@ class ApiDomain(models.Model):
     identifier = models.CharField(
         max_length=50, unique=True,
         verbose_name=_("identifier"),
-        help_text=_("API domain identifier, e.g. https://api.hel.fi/auth/"))
+        help_text=_("API domain identifier, e.g. https://api.hel.fi/auth"))
 
     class Meta:
         verbose_name = _("API domain")
@@ -69,7 +70,9 @@ class Api(models.Model):
 
     @property
     def identifier(self):
-        return '{self.domain}/{self.name}'.format(self=self)
+        return '{domain}/{name}'.format(
+            domain=self.domain.identifier.rstrip('/'),
+            name=self.name)
 
     def scopes_string(self):
         return ' '.join(self.scopes)
@@ -99,7 +102,7 @@ class Api(models.Model):
 
 #TODO: Rename ApiPermission to ApiScope? ############################################################
 
-class ApiPermissionQuerySet(models.QuerySet):
+class ApiPermissionQuerySet(TranslatableQuerySet):
     def by_identifiers(self, identifiers):
         return self.filter(identifier__in=identifiers)
 
@@ -143,6 +146,13 @@ class ApiPermission(AutoFilledIdentifier, ImmutableFields, TranslatableModel):
     class Meta:
         verbose_name = _("API permission")
         verbose_name_plural = _("API permissions")
+
+    @property
+    def relative_identifier(self):
+        return '{api_name}{suffix}'.format(
+            api_name=self.api.name,
+            suffix=('.' + self.specifier if self.specifier else '')
+        )
 
     @classmethod
     def get_api_tokens(cls, permissions, client, user, granted_scopes):#TODO: Remove #######################
