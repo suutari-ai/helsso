@@ -1,8 +1,14 @@
+import logging
+
 from django.utils.translation import ugettext_lazy as _
+from jwkest.jwt import JWT
 from oidc_provider.lib.claims import ScopeClaims, StandardScopeClaims
 from oidc_provider.lib.utils.token import TokenModule
 
 from hkijwt.models import ApiPermission
+
+
+LOG = logging.getLogger(__name__)
 
 
 class HelssoTokenModule(TokenModule):
@@ -10,13 +16,32 @@ class HelssoTokenModule(TokenModule):
                         request=None, scope=[]):
         data = super(HelssoTokenModule, self).create_id_token(
             user, client, nonce, at_hash, request, scope)
-        userinfo = get_userinfo(user, scope, client)
+        api_perms_for_client = (
+            ApiPermission.objects
+            .by_identifiers(scope)
+            .allowed_for_client(client))
+        apis = {api_perm.api for api_perm in api_perms_for_client}
+        extended_scope = sorted(
+            set(scope) |
+            set(sum((list(api.scopes) for api in apis), [])))
+        userinfo = get_userinfo(user, extended_scope, client)
         data.update(userinfo)
-        api_scopes = set(x for x in scope if x.startswith('api-'))
-        api_data = ApiPermission.get_api_data(api_scopes, client, user, scope)
+        allowed_apis = set()
+        for api in apis:
+            missing_scopes = api.get_missing_scopes(scope)
+            if not missing_scopes:
+                allowed_apis.add(api)
+            else:
+                LOG.warning(
+                    "API '%s' needs these ungranted scopes: %s",
+                    api, missing_scopes)
         data['azp'] = client.client_id
-        data['aud'] = [client.client_id] + api_data['aud']
-        data['api_perms'] = api_data['perms']
+        api_audiences = sorted(api.audience for api in allowed_apis)
+        data['aud'] = [client.client_id] + api_audiences
+        allowed_perms = sorted(
+            api_perm.identifier for api_perm in api_perms_for_client
+            if api_perm.api in allowed_apis)
+        data['api_perms'] = allowed_perms
         return data
 
     def client_id_from_id_token(self, id_token):

@@ -16,7 +16,7 @@ class DontRequireIdentifier(object):
 
 
 @admin.register(Api)
-class ApiAdmin(DontRequireIdentifier, admin.ModelAdmin):
+class ApiAdmin(admin.ModelAdmin):
     list_display = ['identifier', 'audience', 'scopes_string']
 
 

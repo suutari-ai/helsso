@@ -16,17 +16,12 @@ from .apikey import generate_api_token
 from .mixins import AutoFilledIdentifier, ImmutableFields
 
 
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)#TODO: Remove ################################
 
 
-api_identifier_validator = RegexValidator(
-    '^[a-z0-9]+$',
+alphanumeric_validator = RegexValidator(
+    '^[a-z0-9]*$',
     message=_("May contain only lower case letters and digits."))
-
-api_permission_identifier_validator = RegexValidator(
-    '^api-[a-z0-9]+(-[a-z0-9]+)*$',
-    message=_("Must start with \"api-\" and may contain "
-              "only lower case letters, digits and dashes."))
 
 SCOPE_CHOICES = [
     ('email', _("E-mail")),
@@ -36,26 +31,45 @@ SCOPE_CHOICES = [
 ]
 
 
-class Api(AutoFilledIdentifier, ImmutableFields, models.Model):
-    immutable_fields = ['identifier']
-
-    audience = models.CharField(
-        max_length=200,
-        verbose_name=_("audience"))
+class ApiDomain(models.Model):
     identifier = models.CharField(
         max_length=50, unique=True,
-        validators=[api_identifier_validator],
         verbose_name=_("identifier"),
-        help_text=_("Leave empty to autofill from audience."))
+        help_text=_("API domain identifier, e.g. https://api.hel.fi/auth/"))
+
+    class Meta:
+        verbose_name = _("API domain")
+        verbose_name_plural = _("API domains")
+
+    def __str__(self):
+        return self.identifier
+
+
+class Api(models.Model):
+    domain = models.ForeignKey(
+        ApiDomain,
+        verbose_name=("domain"))
+    name = models.CharField(
+        max_length=50,
+        validators=[alphanumeric_validator],
+        verbose_name=_("name"))
     scopes = MultiSelectField(
-        choices=SCOPE_CHOICES, max_length=200,
+        choices=SCOPE_CHOICES, max_length=200, #TODO:Check length!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         default=['email', 'profile'],
         verbose_name=_("scopes"),
         help_text=_("Select scopes to include to the API token."))
 
     class Meta:
+        unique_together = [('domain', 'name')]
         verbose_name = _("API")
         verbose_name_plural = _("APIs")
+
+    def __str__(self):
+        return self.identifier
+
+    @property
+    def identifier(self):
+        return '{self.domain}/{self.name}'.format(self=self)
 
     def scopes_string(self):
         return ' '.join(self.scopes)
@@ -71,19 +85,26 @@ class Api(AutoFilledIdentifier, ImmutableFields, models.Model):
                 self, wanted - result)
         return result
 
-    def check_granted_scopes(self, granted_scopes):
-        missing = set(self.scopes) - set(granted_scopes)
-        if missing:
-            LOG.warning(
-                "API '%s' needs these ungranted scopes: %s",
-                self, missing)
-        return missing
+    def get_missing_scopes(self, granted_scopes):
+        """
+        Get scopes needed by this API which are not granted.
 
-    def _generate_identifier(self):
-        return re.sub('[^a-z-]', '', slugify(
-            self.audience
-            .split('//', 1)[-1]  # remove possible schema, e.g. "https://"
-            .split('/', 1)[0].split('.', 1)[0]))  # take only hostname
+        :type granted_scopes: Iterable[str]
+        :param granted_scopes: List of granted scopes
+        :rtype: Iterable[str]
+        :return: Missing scopes
+        """
+        return set(self.scopes) - set(granted_scopes)
+
+
+#TODO: Rename ApiPermission to ApiScope? ############################################################
+
+class ApiPermissionQuerySet(models.QuerySet):
+    def by_identifiers(self, identifiers):
+        return self.filter(identifier__in=identifiers)
+
+    def allowed_for_client(self, client):
+        return self.filter(allowed_apps=client)
 
 
 class ApiPermission(AutoFilledIdentifier, ImmutableFields, TranslatableModel):
@@ -95,6 +116,7 @@ class ApiPermission(AutoFilledIdentifier, ImmutableFields, TranslatableModel):
         help_text=_("The API that this permission is for."))
     specifier = models.CharField(
         max_length=30, blank=True,
+        validators=[alphanumeric_validator],
         verbose_name=_("specifier"),
         help_text=_(
             "If there is a need for multiple permissions per API, "
@@ -102,8 +124,7 @@ class ApiPermission(AutoFilledIdentifier, ImmutableFields, TranslatableModel):
             "e.g. \"read\" or \"write\".  For general API access "
             "permisison just leave this empty."))
     identifier = models.CharField(
-        max_length=100, unique=True, editable=False,
-        validators=[api_permission_identifier_validator],
+        max_length=150, unique=True, editable=False,
         verbose_name=_("identifier"),
         help_text=_(
             "The permission identifier as known by the "
@@ -117,12 +138,14 @@ class ApiPermission(AutoFilledIdentifier, ImmutableFields, TranslatableModel):
         help_text=_("Select client applications which are allowed "
                     "to get access to this API permission."))
 
+    objects = ApiPermissionQuerySet.as_manager()
+
     class Meta:
         verbose_name = _("API permission")
         verbose_name_plural = _("API permissions")
 
     @classmethod
-    def get_api_tokens(cls, permissions, client, user, granted_scopes):
+    def get_api_tokens(cls, permissions, client, user, granted_scopes):#TODO: Remove #######################
         allowed_perms = cls.objects.filter(
             identifier__in=permissions, allowed_apps=client)
         perms_by_api = defaultdict(set)
@@ -135,22 +158,10 @@ class ApiPermission(AutoFilledIdentifier, ImmutableFields, TranslatableModel):
             for (api, perm_identifiers) in perms_by_api.items()
         }
 
-    @classmethod
-    def get_api_data(cls, permissions, client, user, granted_scopes):
-        allowed_perms = cls.objects.filter(
-            identifier__in=permissions, allowed_apps=client)
-        apis = set(perm.api for perm in allowed_perms)
-        for api in apis:
-            api.check_granted_scopes(granted_scopes)
-        return {
-            'aud': sorted(api.audience for api in apis),
-            'perms': [perm.identifier for perm in allowed_perms],
-        }
-
     def _generate_identifier(self):
-        return 'api-{api_identifier}{suffix}'.format(
+        return '{api_identifier}{suffix}'.format(
             api_identifier=self.api.identifier,
-            suffix=('-' + slugify(self.specifier) if self.specifier else '')
+            suffix=('.' + self.specifier if self.specifier else '')
         )
 
 
@@ -164,7 +175,7 @@ class ApiPermissionTranslation(TranslatedFieldsModel):
         max_length=1000, verbose_name=_("description"))
 
     class Meta:
-        unique_together = ('language_code', 'master')
+        unique_together = [('language_code', 'master')]
         verbose_name = _("API permission translation")
         verbose_name_plural = _("API permission translations")
 
