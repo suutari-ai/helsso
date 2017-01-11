@@ -1,7 +1,10 @@
 ID Token
 ========
 
-ID Token should look like this::
+ID Token should look like this:
+
+.. code-block:: javascript
+
   {
       "iss": "https://oma.hel.fi",
       "auth_time": 1483885641,
@@ -29,16 +32,20 @@ ID Token should look like this::
 
 
 The API scopes are similar to `Google's API scopes
-<https://developers.google.com/identity/protocols/googlescopes`_ and
-look like this:
+<https://developers.google.com/identity/protocols/googlescopes>`_ and
+may look like this:
 
-=======================================  =================================================
-Scope                                    Description
-=======================================  =================================================
-https://api.hel.fi/auth/kerrokantasi     View and manage your data in Kerrokantasi service
-https://api.hel.fi/auth/respa            View and manage your reservations in Varaamo
-https://api.hel.fi/auth/respa.readonly   View your reservations in Varaamo
-=======================================  ========================================
++--------------------------------------+-----------------------------------+
+|Scope                                 |Description                        |
++======================================+===================================+
+|https://api.hel.fi/auth/kerrokantasi  |View and manage your data in       |
+|                                      |Kerrokantasi service               |
++--------------------------------------+-----------------------------------+
+|https://api.hel.fi/auth/respa         |View and manage your reservations  |
+|                                      |in Varaamo                         |
++--------------------------------------+-----------------------------------+
+|https://api.hel.fi/auth/respa.readonly|View your reservations in Varaamo  |
++--------------------------------------+-----------------------------------+
 
 Authorization for the scopes is requested in OIDC scope parameter, e.g.
 ``scope="openid https://api.hel.fi/auth/kerrokantasi"``.  Each API scope
