@@ -1,6 +1,9 @@
 ID Token
 ========
 
+Contents of the token
+---------------------
+
 ID Token should look like this:
 
 .. code-block:: javascript
@@ -31,6 +34,21 @@ ID Token should look like this:
   }
 
 
+Things to note from that:
+
+* ``aud`` contains a list of audiences, the first in the list is the
+  client ID of the OIDC client requesting the token (usually an UI
+  app) and the rest are the audiences of the backend APIs.  Backend
+  APIs should check that their audience identifier is listed there.
+* ``azp`` (Authorized Party) contains the OIDC client's ID
+* API permissions are listed in claim named by the "API domain", in
+  the example this is ``https://api.hel.fi/auth``.  API domains are
+  stored as models and can be managed in Django Admin.  API backend
+  should use this claim to fine tune the permissions.
+
+API scopes
+----------
+
 The API scopes are similar to `Google's API scopes
 <https://developers.google.com/identity/protocols/googlescopes>`_ and
 may look like this:
@@ -47,11 +65,14 @@ may look like this:
 |https://api.hel.fi/auth/respa.readonly|View your reservations in Varaamo  |
 +--------------------------------------+-----------------------------------+
 
+Requesting API access
+---------------------
+
 Authorization for the scopes is requested in OIDC scope parameter, e.g.
 ``scope="openid https://api.hel.fi/auth/kerrokantasi"``.  Each API scope
 might depend on additional OIDC scopes (e.g. ``profile``, ``email``, or
 ``github_username``) and those will be added automatically so that:
 
-  * If user consent is requested, the automatically included scopes are
-    also listed.
-  * Automatically added scopes are also included in the ID Token.
+* If user consent is requested, the automatically included scopes are
+  also listed in the "consent screen".
+* Automatically added scopes are also included in the ID Token.
