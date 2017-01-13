@@ -14,6 +14,14 @@ LOG = logging.getLogger(__name__)
 class HelssoTokenModule(TokenModule):
     def create_id_token(self, user, client, nonce='', at_hash='',
                         request=None, scope=[]):
+        """
+        :type user: users.models.User
+        :type client: oidc_provider.models.Client
+        :type nonce: str
+        :type at_hast: str
+        :type request: django.http.HttpRequest|None
+        :type scope: list[str]
+        """
         data = super(HelssoTokenModule, self).create_id_token(
             user, client, nonce, at_hash, request, scope)
         api_perms = (
