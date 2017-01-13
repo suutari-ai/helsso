@@ -7,8 +7,14 @@
 ** STARTED API-authentikaatio OIDC:llä
    - OIDC:n id_tokenin käyttäminen API-authentikaatioon?
    - passport-kirjasto tälle
-   - backend-muutokset API-tokenin verifikaatioon (django-helusersiin?)
+   - backend-muutokset ID-tokenin verifikaatioon API:eissa (django-helusersiin?)
+     - Management-komento, jolla haetaan public-key kantaan HTTPS:llä
+     - ks. esim. http://connect2id.com/blog/how-to-validate-an-openid-connect-id-token
+** TODO Kirjautumisten loki
+   - Implementoi kirjautumisten lokitus tietokantaan, esim. django-axes saattaisi toimia
+   - UI viimeisten kirjautumisten näyttämiseen käyttäjän profiilissa
 ** TODO Login-methodien rajaaminen per palvelu OIDC:llä
+** TODO Management-komento
 ** TODO Profile -scopen sijaan esim. pelkän nimen kysyminen (picture, zoneinfo, locale?)
 ** TODO Kirjautuminen ilman sähköpostia
 ** TODO Profiili-sivu
