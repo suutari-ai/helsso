@@ -10,6 +10,7 @@
    - backend-muutokset ID-tokenin verifikaatioon API:eissa (django-helusersiin?)
      - Management-komento, jolla haetaan public-key kantaan HTTPS:llä
      - ks. esim. http://connect2id.com/blog/how-to-validate-an-openid-connect-id-token
+   - OIDC-clienttien client_id:t URLeiksi
 ** TODO Kirjautumisten loki
    - Implementoi kirjautumisten lokitus tietokantaan, esim. django-axes saattaisi toimia
    - UI viimeisten kirjautumisten näyttämiseen käyttäjän profiilissa
