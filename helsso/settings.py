@@ -241,7 +241,6 @@ SOCIALACCOUNT_PROVIDERS = {
     'yletunnus': {
         'VERIFIED_EMAIL': True,
     },
-
 }
 
 # django-oidc-provider settings for OpenID Connect support
