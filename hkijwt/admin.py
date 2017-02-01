@@ -2,7 +2,7 @@ from django.contrib import admin
 from parler.admin import TranslatableAdmin
 
 from .models import (
-    Api, ApiDomain, ApiPermission, ApiPermissionTranslation,
+    Api, ApiDomain, ApiScope, ApiScopeTranslation,
     AppToAppPermission)
 
 
@@ -23,11 +23,11 @@ class ApiDomainAdmin(admin.ModelAdmin):
 
 @admin.register(Api)
 class ApiAdmin(admin.ModelAdmin):
-    list_display = ['domain', 'name', 'scopes_string']
+    list_display = ['identifier', 'name', 'required_scopes_string']
 
 
-@admin.register(ApiPermission)
-class ApiPermissionAdmin(DontRequireIdentifier, TranslatableAdmin):
+@admin.register(ApiScope)
+class ApiScopeAdmin(DontRequireIdentifier, TranslatableAdmin):
     list_display = ['identifier', 'api', 'specifier', 'name', 'description']
     search_fields = ['identifier', 'api__identifier', 'specifier',
                      'translations__name', 'translations__description']
@@ -40,8 +40,8 @@ class ApiPermissionAdmin(DontRequireIdentifier, TranslatableAdmin):
     )
 
 
-@admin.register(ApiPermissionTranslation)
-class ApiPermissionTranslationAdmin(admin.ModelAdmin):
+@admin.register(ApiScopeTranslation)
+class ApiScopeTranslationAdmin(admin.ModelAdmin):
     list_filter = ['master', 'language_code']
     list_display = ['master', 'language_code', 'name', 'description']
 

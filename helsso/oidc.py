@@ -5,7 +5,7 @@ from jwkest.jwt import JWT
 from oidc_provider.lib.claims import ScopeClaims, StandardScopeClaims
 from oidc_provider.lib.utils.token import TokenModule
 
-from hkijwt.models import ApiPermission
+from hkijwt.models import ApiScope
 
 
 LOG = logging.getLogger(__name__)
@@ -24,22 +24,21 @@ class HelssoTokenModule(TokenModule):
         """
         data = super(HelssoTokenModule, self).create_id_token(
             user, client, nonce, at_hash, request, scope)
-        api_perms = (
-            ApiPermission.objects
-            .by_identifiers(scope)
+        api_scopes = (
+            ApiScope.objects.by_identifiers(scope)
             .allowed_for_client(client))
-        apis = {api_perm.api for api_perm in api_perms}
+        apis = {api_scope.api for api_scope in api_scopes}
         extended_scope = sorted(
             set(scope) |
-            set(sum((list(api.scopes) for api in apis), [])))
+            set(sum((list(api.required_scopes) for api in apis), [])))
         userinfo = get_userinfo(user, extended_scope, client)
         data.update(userinfo)
         data['azp'] = client.client_id
         api_audiences = sorted(api.identifier for api in apis)
         data['aud'] = [client.client_id] + api_audiences
-        for api_perm in api_perms:
-            field = api_perm.api.domain.identifier
-            data.setdefault(field, []).append(api_perm.relative_identifier)
+        for api_scope in api_scopes:
+            field = api_scope.api.domain.identifier
+            data.setdefault(field, []).append(api_scope.relative_identifier)
         return data
 
     def client_id_from_id_token(self, id_token):
@@ -74,7 +73,7 @@ class ApiTokensScopeClaims(ScopeClaims):
     def get_scopes_info(cls, scopes=[]):
         api_perms_by_identifier = {
             api_perm.identifier: api_perm
-            for api_perm in ApiPermission.objects.by_identifiers(scopes)
+            for api_perm in ApiScope.objects.by_identifiers(scopes)
         }
         api_perms = (api_perms_by_identifier.get(scope) for scope in scopes)
         return [
