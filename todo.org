@@ -4,13 +4,27 @@
    CLOSED: [2017-01-06 Fri 12:22]
    - reauth kuten ticketissä https://github.com/City-of-Helsinki/helsso/issues/12
    - tai ACCOUNT_EMAIL_VERIFICATION = mandatory 
-** STARTED API-authentikaatio OIDC:llä
-   - OIDC:n id_tokenin käyttäminen API-authentikaatioon?
-   - passport-kirjasto tälle
-   - backend-muutokset ID-tokenin verifikaatioon API:eissa (django-helusersiin?)
-     - Management-komento, jolla haetaan public-key kantaan HTTPS:llä
+** STARTED API-authentikaatio OIDC:llä [1/6]
+   - [X] SSO: Perus OIDC-tuki
+   - [-] SSO: OIDC:n ID tokenin käyttäminen API-authentikaatioon
+     - [-] django-oidc-provider: tuki ID tokenin laajentamiselle
+     - [-] django-oidc-provider: ID tokenin aud/azp-kenttien muutokset
+     - [-] helsso: ApiScope-modelit kuntoon
+     - [ ] ScopeClaims tukemaan required_scopes:ia
+   - [ ] UI-apps: Kirjaituminen OIDC:llä
+   - [ ] UI-apps: ID tokenin lähettäminen API:lle
+   - [ ] API-apps: ID tokenin käyttäminen verifikaatioon (django-helusersiin?)
+     - [ ] Public-keyn nouto HTTPS:llä ja cachettaminen (tässä vaiheessa)
+     - [ ] JWT:n allekirjoituksen tarkistaminen
+     - [ ] Issuerin tarkistaminen
+     - [ ] aud:n tarkistaminen
+     - [ ] exp-ajan tarkistaminen
+     - [ ] käyttäjän UUID sub-kentästä
+     - [ ] Oikeuksien lista ("https://api.hel.fi/auth" -kentästä)
      - ks. esim. http://connect2id.com/blog/how-to-validate-an-openid-connect-id-token
-   - OIDC-clienttien client_id:t URLeiksi
+   - [ ] SSO: OIDC-clienttien client_id:t URLeiksi
+   - [ ] API-apps: Management-komento, jolla haetaan public-key kantaan HTTPS:llä
+     - Korvataan automaattinen nouto ja cachetus tällä staattisemmalla ratkaisulla
 ** TODO Kirjautumisten loki
    - Implementoi kirjautumisten lokitus tietokantaan, esim. django-axes saattaisi toimia
    - UI viimeisten kirjautumisten näyttämiseen käyttäjän profiilissa
