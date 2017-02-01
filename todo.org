@@ -4,14 +4,19 @@
    CLOSED: [2017-01-06 Fri 12:22]
    - reauth kuten ticketissä https://github.com/City-of-Helsinki/helsso/issues/12
    - tai ACCOUNT_EMAIL_VERIFICATION = mandatory 
-** STARTED API-authentikaatio OIDC:llä [1/6]
+** STARTED API-authentikaatio OIDC:llä [1/8]
    - [X] SSO: Perus OIDC-tuki
-   - [-] SSO: OIDC:n ID tokenin käyttäminen API-authentikaatioon
+   - [-] SSO: OIDC:n ID tokenin laajennus API-authentikaatioon sopivaksi
      - [-] django-oidc-provider: tuki ID tokenin laajentamiselle
      - [-] django-oidc-provider: ID tokenin aud/azp-kenttien muutokset
-     - [-] helsso: ApiScope-modelit kuntoon
+     - [X] helsso: ApiScope-modelit kuntoon
      - [ ] ScopeClaims tukemaan required_scopes:ia
-   - [ ] UI-apps: Kirjaituminen OIDC:llä
+   - [-] SSO: ID tokenin sisällön korjaukset
+     - [X] Ota käyttäjätunnus pois "nickname" kentästä
+     - [X] Laita käyttäjätunnus kenttään "preferred_username"
+     - [X] Muodosta "name" kenttään yhdistetty nimi (etu + suku)
+     - [-] Lisää "email_verified" mukaan
+   - [-] UI-apps: Kirjaituminen OIDC:llä
    - [ ] UI-apps: ID tokenin lähettäminen API:lle
    - [ ] API-apps: ID tokenin käyttäminen verifikaatioon (django-helusersiin?)
      - [ ] Public-keyn nouto HTTPS:llä ja cachettaminen (tässä vaiheessa)

@@ -244,6 +244,7 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 # django-oidc-provider settings for OpenID Connect support
+OIDC_USERINFO = 'helsso.oidc.get_userinfo'
 OIDC_IDTOKEN_SUB_GENERATOR = 'helsso.oidc.sub_generator'
 OIDC_EXTRA_SCOPE_CLAIMS = 'helsso.oidc.CombinedScopeClaims'
 OIDC_TOKEN_MODULE = 'helsso.oidc.HelssoTokenModule'

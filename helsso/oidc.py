@@ -29,7 +29,7 @@ class HelssoTokenModule(TokenModule):
         (api_scope, api_aud, api_claims) = self._get_api_data(client, scope)
 
         extended_scope = set(scope) | set(api_scope)
-        userinfo = get_userinfo(user, extended_scope, client)
+        userinfo = get_userinfo_by_scopes(user, extended_scope, client)
         data.update(userinfo)
         data.update(api_claims)
         data['aud'] = [client.client_id] + api_aud
@@ -150,7 +150,15 @@ class FakeToken(object):
         return cls(claims.user, claims.scopes, claims.client)
 
 
-def get_userinfo(user, scopes, client=None):
+def get_userinfo(claims, user):
+    claims['name'] = '{0} {1}'.format(user.first_name, user.last_name)
+    claims['email_verified'] = True #TODO: Fill this for real ################################
+    claims['nickname'] = user.first_name  # We don't want username here
+    claims['preferred_username'] = user.username
+    return claims
+
+
+def get_userinfo_by_scopes(user, scopes, client=None):
     token = FakeToken(user, scopes, client)
     result = {}
     result.update(StandardScopeClaims(token).create_response_dic())
