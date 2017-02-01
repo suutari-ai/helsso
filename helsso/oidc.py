@@ -1,11 +1,12 @@
 import logging
+from collections import defaultdict
 
 from django.utils.translation import ugettext_lazy as _
+
+from hkijwt.models import ApiScope
 from jwkest.jwt import JWT
 from oidc_provider.lib.claims import ScopeClaims, StandardScopeClaims
 from oidc_provider.lib.utils.token import TokenModule
-
-from hkijwt.models import ApiScope
 
 
 LOG = logging.getLogger(__name__)
@@ -24,22 +25,37 @@ class HelssoTokenModule(TokenModule):
         """
         data = super(HelssoTokenModule, self).create_id_token(
             user, client, nonce, at_hash, request, scope)
+
+        (api_scope, api_aud, api_claims) = self._get_api_data(client, scope)
+
+        extended_scope = set(scope) | set(api_scope)
+        userinfo = get_userinfo(user, extended_scope, client)
+        data.update(userinfo)
+        data.update(api_claims)
+        data['aud'] = [client.client_id] + api_aud
+        data['azp'] = client.client_id
+        return data
+
+    def _get_api_data(self, client, scope):
         api_scopes = (
             ApiScope.objects.by_identifiers(scope)
             .allowed_for_client(client))
         apis = {api_scope.api for api_scope in api_scopes}
-        extended_scope = sorted(
-            set(scope) |
-            set(sum((list(api.required_scopes) for api in apis), [])))
-        userinfo = get_userinfo(user, extended_scope, client)
-        data.update(userinfo)
-        data['azp'] = client.client_id
+
+        # Collect scopes required by APIs
+        required_scopes = set(sum(
+            (list(api.required_scopes) for api in apis), []))
+
+        # Collect audiences
         api_audiences = sorted(api.identifier for api in apis)
-        data['aud'] = [client.client_id] + api_audiences
+
+        # Collect API scope claims
+        claims = defaultdict(list)
         for api_scope in api_scopes:
             field = api_scope.api.domain.identifier
-            data.setdefault(field, []).append(api_scope.relative_identifier)
-        return data
+            claims[field].append(api_scope.relative_identifier)
+
+        return (required_scopes, api_audiences, claims)
 
     def client_id_from_id_token(self, id_token):
         payload = JWT().unpack(id_token).payload()
@@ -55,7 +71,8 @@ def sub_generator(user):
 
 
 class GithubUsernameScopeClaims(ScopeClaims):
-    info_github_username = (_("GitHub username"), _("Access to your GitHub username."))
+    info_github_username = (
+        _("GitHub username"), _("Access to your GitHub username."))
 
     def scope_github_username(self):
         social_accounts = self.user.socialaccount_set
@@ -71,18 +88,18 @@ class GithubUsernameScopeClaims(ScopeClaims):
 class ApiTokensScopeClaims(ScopeClaims):
     @classmethod
     def get_scopes_info(cls, scopes=[]):
-        api_perms_by_identifier = {
-            api_perm.identifier: api_perm
-            for api_perm in ApiScope.objects.by_identifiers(scopes)
+        scopes_by_identifier = {
+            api_scope.identifier: api_scope
+            for api_scope in ApiScope.objects.by_identifiers(scopes)
         }
-        api_perms = (api_perms_by_identifier.get(scope) for scope in scopes)
+        api_scopes = (scopes_by_identifier.get(scope) for scope in scopes)
         return [
             {
-                'scope': api_perm.identifier,
-                'name': api_perm.name,
-                'description': api_perm.description,
+                'scope': api_scope.identifier,
+                'name': api_scope.name,
+                'description': api_scope.description,
             }
-            for api_perm in api_perms if api_perm
+            for api_scope in api_scopes if api_scope
         ]
 
 
