@@ -17,6 +17,16 @@
      - [X] Muodosta "name" kenttään yhdistetty nimi (etu + suku)
      - [-] Lisää "email_verified" mukaan
    - [-] UI-apps: Kirjaituminen OIDC:llä
+     - [X] Testaa eri passport-kirjastot
+       - [X] passport-oidc-client
+         - Was missing features
+       - [X] passport-openidconnect
+         - Didn't work
+       - [X] passport-openid-connect
+         - Shit
+       - [X] openid-client (has passport support)
+     - [ ] Porttaa user profile yms.
+   - [ ] SSO: Tarkista miksi profile ei tule implisiittisesti Kk:lle
    - [ ] UI-apps: ID tokenin lähettäminen API:lle
    - [ ] API-apps: ID tokenin käyttäminen verifikaatioon (django-helusersiin?)
      - [ ] Public-keyn nouto HTTPS:llä ja cachettaminen (tässä vaiheessa)
