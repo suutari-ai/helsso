@@ -40,6 +40,10 @@
    - [ ] SSO: OIDC-clienttien client_id:t URLeiksi
    - [ ] API-apps: Management-komento, jolla haetaan public-key kantaan HTTPS:llä
      - Korvataan automaattinen nouto ja cachetus tällä staattisemmalla ratkaisulla
+** TODO @petterip:n toive (Varaamo): Mahdollisuus valita Google-tili
+    - SSO-kirjautuminen voisi tarjota mahdollisuuden vaihtaa
+      Google-tiliä kirjautumisen yhteydessä.
+    - http://stackoverflow.com/questions/14384354/force-google-account-chooser
 ** TODO Kirjautumisten loki
    - Implementoi kirjautumisten lokitus tietokantaan, esim. django-axes saattaisi toimia
    - UI viimeisten kirjautumisten näyttämiseen käyttäjän profiilissa

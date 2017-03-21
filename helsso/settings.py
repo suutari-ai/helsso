@@ -55,6 +55,7 @@ INSTALLED_APPS = (
 
     'adfs_provider',
     'hkijwt',
+    'django_extensions',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -237,6 +238,9 @@ SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': ['email'],
         'VERIFIED_EMAIL': True,
+        'AUTH_PARAMS': {
+            'prompt': 'select_account',
+        },
     },
     'yletunnus': {
         'VERIFIED_EMAIL': True,

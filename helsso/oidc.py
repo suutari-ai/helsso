@@ -29,6 +29,7 @@ class HelssoTokenModule(TokenModule):
         (api_scope, api_aud, api_claims) = self._get_api_data(client, scope)
 
         extended_scope = set(scope) | set(api_scope)
+        print(extended_scope)
         userinfo = get_userinfo_by_scopes(user, extended_scope, client)
         data.update(userinfo)
         data.update(api_claims)
@@ -37,6 +38,13 @@ class HelssoTokenModule(TokenModule):
         return data
 
     def _get_api_data(self, client, scope):
+        print()
+        print()
+        print('SCOPE ********************************: ', scope, '|||')
+        print()
+        print()
+        #import pdb; pdb.set_trace()
+        #import ipdb; ipdb.set_trace()
         api_scopes = (
             ApiScope.objects.by_identifiers(scope)
             .allowed_for_client(client))
