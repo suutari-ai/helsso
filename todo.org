@@ -30,7 +30,7 @@
    - [ ] UI-apps: ID tokenin lähettäminen API:lle
    - [ ] API-apps: ID tokenin käyttäminen verifikaatioon (django-helusersiin?)
      - [ ] Public-keyn nouto HTTPS:llä ja cachettaminen (tässä vaiheessa)
-     - [ ] JWT:n allekirjoituksen tarkistaminen
+     - [-] JWT:n allekirjoituksen tarkistaminen
      - [ ] Issuerin tarkistaminen
      - [ ] aud:n tarkistaminen
      - [ ] exp-ajan tarkistaminen
