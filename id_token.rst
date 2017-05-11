@@ -26,11 +26,13 @@ ID Token should look like this:
           "respa.readonly",
       ],
       "sub": "33e0b08a-b7e3-11e6-b1d7-f0761c0512c2",
-      "nickname": "u-gpqlbcvx4mi6nmox6b3bybisyi",
+      "name": "Tuomas Suutari",
+      "nickname": "Tuomas",
       "given_name": "Tuomas",
       "family_name": "Suutari",
       "github_username": "suutari-ai",
       "email": "tuomas.suutari@gmail.com",
+      "email_verified": true,
   }
 
 
