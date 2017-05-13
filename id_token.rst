@@ -14,11 +14,11 @@ ID Token should look like this:
       "iat": 1483885643,
       "exp": 1483886243,
       "aud": [
-          "https://api.hel.fi/oidc-client/kerrokantasi",
+          "https://api.hel.fi/auth/kerrokantasi-ui",
           "https://api.hel.fi/auth/kerrokantasi",
           "https://api.hel.fi/auth/respa"
       ],
-      "azp": "https://api.hel.fi/oidc-client/kerrokantasi",
+      "azp": "https://api.hel.fi/auth/kerrokantasi-ui",
       "at_hash": "aU0XRQdbGq6IEth0z5dppg",
       "nonce": "kze88m"
       "https://api.hel.fi/auth": [
