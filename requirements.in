@@ -1,4 +1,5 @@
 django
+django-multiselectfield
 django-oauth-toolkit
 django-parler
 django-cors-headers
