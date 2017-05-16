@@ -1,0 +1,75 @@
+* SSO-tehtäviä
+
+** DONE Facebook-kirjautumiset ilman sähköpostia
+   CLOSED: [2017-01-06 Fri 12:22]
+   - reauth kuten ticketissä https://github.com/City-of-Helsinki/helsso/issues/12
+   - tai ACCOUNT_EMAIL_VERIFICATION = mandatory 
+** STARTED API-authentikaatio OIDC:llä [1/8]
+   - [X] SSO: Perus OIDC-tuki
+   - [-] SSO: OIDC:n ID tokenin laajennus API-authentikaatioon sopivaksi
+     - [-] django-oidc-provider: tuki ID tokenin laajentamiselle
+     - [-] django-oidc-provider: ID tokenin aud/azp-kenttien muutokset
+     - [X] helsso: ApiScope-modelit kuntoon
+     - [ ] ScopeClaims tukemaan required_scopes:ia
+   - [-] SSO: ID tokenin sisällön korjaukset
+     - [X] Ota käyttäjätunnus pois "nickname" kentästä
+     - [X] Laita käyttäjätunnus kenttään "preferred_username"
+     - [X] Muodosta "name" kenttään yhdistetty nimi (etu + suku)
+     - [-] Lisää "email_verified" mukaan
+   - [-] UI-apps: Kirjaituminen OIDC:llä
+     - [X] Testaa eri passport-kirjastot
+       - [X] passport-oidc-client
+         - Was missing features
+       - [X] passport-openidconnect
+         - Didn't work
+       - [X] passport-openid-connect
+         - Shit
+       - [X] openid-client (has passport support)
+     - [ ] Porttaa user profile yms.
+   - [ ] SSO: Userinfo-endpointtiin myös API-dependentit tiedot
+   - [ ] SSO: Tarkista miksi profile ei tule implisiittisesti Kk:lle
+   - [ ] UI-apps: ID tokenin lähettäminen API:lle
+   - [ ] API-apps: ID tokenin käyttäminen verifikaatioon (django-helusersiin?)
+     - [ ] Public-keyn nouto HTTPS:llä ja cachettaminen (tässä vaiheessa)
+     - [-] JWT:n allekirjoituksen tarkistaminen
+     - [ ] Issuerin tarkistaminen
+     - [ ] aud:n tarkistaminen
+     - [ ] exp-ajan tarkistaminen
+     - [ ] käyttäjän UUID sub-kentästä
+     - [ ] Oikeuksien lista ("https://api.hel.fi/auth" -kentästä)
+     - ks. esim. http://connect2id.com/blog/how-to-validate-an-openid-connect-id-token
+   - [ ] SSO: OIDC-clienttien client_id:t URLeiksi
+   - [ ] API-apps: Management-komento, jolla haetaan public-key kantaan HTTPS:llä
+     - Korvataan automaattinen nouto ja cachetus tällä staattisemmalla ratkaisulla
+** TODO @petterip:n toive (Varaamo): Mahdollisuus valita Google-tili
+    - SSO-kirjautuminen voisi tarjota mahdollisuuden vaihtaa
+      Google-tiliä kirjautumisen yhteydessä.
+    - http://stackoverflow.com/questions/14384354/force-google-account-chooser
+** TODO Kirjautumisten loki
+   - Implementoi kirjautumisten lokitus tietokantaan, esim. django-axes saattaisi toimia
+   - UI viimeisten kirjautumisten näyttämiseen käyttäjän profiilissa
+** TODO Login-methodien rajaaminen per palvelu OIDC:llä
+** TODO Management-komento
+** TODO Profile -scopen sijaan esim. pelkän nimen kysyminen (picture, zoneinfo, locale?)
+** TODO Kirjautuminen ilman sähköpostia
+** TODO Profiili-sivu
+** TODO Account-nappi palveluihin
+** TODO Useamman kirjautumistavan linkkaus samaan tiliin
+** TODO Käyttäjätilien yhdistäminen
+   - helsso:n osuus
+     - Yhdistettäessä tili B tiliin A, deprekoidaan B ja yhdistetään B:n
+       sähköpostiosoitteet ja SocialAccount:t A:n alle.  Jatkossa
+       id_token/api_token:ssa välitetään tieto ~old_uuids: B~.
+   - applikaatioiden osuus
+     - Kun id_token/api_token:ssa on old_uuids, niin tarkistetaan onko
+       sellaista käyttäjää ja jos on, niin siirretään kaikki vanhan
+       UUID:n mukaisen käyttäjän tiedot uuden UUID:n alle.
+
+       HUOM! Helppo tapaus: Jos uutta UUID:tä ei vielä ollut, niin
+       voidaan vaan vaihtaa nykyisen käyttäjän UUID.
+
+** TODO Salasanalla kirjautuminen
+** TODO Sähköpostiosoitteiden hallinta
+   - Sähköpostiosoitteen lisääminen/poistaminen
+   - Sähköpostiosoitteen verifiointi
+** TODO Salasanan vaihtaminen
