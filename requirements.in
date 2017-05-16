@@ -1,7 +1,7 @@
 django
 django-oauth-toolkit
 django-cors-headers
-django-oidc-provider
+git+https://github.com/suutari-ai/django-oidc-provider.git@hel#egg=django-oidc-provider-hel==0.4.4.1
 djangorestframework
 pyjwt
 django-helusers
