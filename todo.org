@@ -26,6 +26,7 @@
          - Shit
        - [X] openid-client (has passport support)
      - [ ] Porttaa user profile yms.
+   - [ ] SSO: Userinfo-endpointtiin myös API-dependentit tiedot
    - [ ] SSO: Tarkista miksi profile ei tule implisiittisesti Kk:lle
    - [ ] UI-apps: ID tokenin lähettäminen API:lle
    - [ ] API-apps: ID tokenin käyttäminen verifikaatioon (django-helusersiin?)

@@ -52,7 +52,10 @@ class Api(models.Model):
         choices=SCOPE_CHOICES, max_length=1000,
         default=['email', 'profile'],
         verbose_name=_("required scopes"),
-        help_text=_("Select scopes to include to the API tokens."))
+        help_text=_(
+            "Select the scopes that this API needs information from. "
+            "Information from the selected scopes will be included to "
+            "the ID tokens."))
 
     class Meta:
         unique_together = [('domain', 'name')]
@@ -69,7 +72,7 @@ class Api(models.Model):
             name=self.name)
 
     def required_scopes_string(self):
-        return ' '.join(self.required_scopes)
+        return ' '.join(sorted(self.required_scopes))
     required_scopes_string.short_description = _("required scopes")
 
 
@@ -88,9 +91,9 @@ class ApiScope(AutoFilledIdentifier, ImmutableFields, TranslatableModel):
         max_length=150, unique=True, editable=False,
         verbose_name=_("identifier"),
         help_text=_(
-            "The scope identifier as known by the "
-            "API provider application.  Filled automatically "
-            "from API identifier and scope specifier."))
+            "The scope identifier as known by the API application "
+            "(i.e. the Resource Owner).  Generated automatically from "
+            "the API identifier and the scope specifier."))
     api = models.ForeignKey(
         Api, related_name='scopes',
         verbose_name=_("API"),
@@ -131,6 +134,50 @@ class ApiScope(AutoFilledIdentifier, ImmutableFields, TranslatableModel):
             api_identifier=self.api.identifier,
             suffix=('.' + self.specifier if self.specifier else '')
         )
+
+    @classmethod
+    def get_data_for_request(cls, scopes, client=None):
+        assert isinstance(scopes, (list, set)), repr(scopes)
+        assert client is None or isinstance(client, models.Model), repr(client)
+        known_api_scopes = cls.objects.by_identifiers(scopes)
+        allowed_api_scopes = (
+            known_api_scopes.allowed_for_client(client) if client
+            else known_api_scopes)
+        return CombinedApiScopeData(allowed_api_scopes)
+
+
+class CombinedApiScopeData(object):
+    """
+    API scope data combined from several ApiScope objects.
+    """
+    def __init__(self, api_scopes):
+        self.api_scopes = api_scopes
+        self.apis = {api_scope.api for api_scope in self.api_scopes}
+
+    @property
+    def required_scopes(self):
+        """
+        The scopes required by the APIs.
+        """
+        return set(sum((list(api.required_scopes) for api in self.apis), []))
+
+    @property
+    def audiences(self):
+        """
+        The audiences for the APIs, for ID token "aud" field.
+        """
+        return sorted(api.identifier for api in self.apis)
+
+    @property
+    def authorization_claims(self):
+        """
+        API scope authorization fields for the claims dictionary.
+        """
+        authorization_claims = defaultdict(list)
+        for api_scope in self.api_scopes:
+            field = api_scope.api.domain.identifier
+            authorization_claims[field].append(api_scope.relative_identifier)
+        return dict(authorization_claims)
 
 
 class ApiScopeTranslation(TranslatedFieldsModel):

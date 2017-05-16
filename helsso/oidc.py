@@ -23,47 +23,18 @@ class HelssoTokenModule(TokenModule):
         :type request: django.http.HttpRequest|None
         :type scope: list[str]
         """
-        data = super(HelssoTokenModule, self).create_id_token(
+        payload = super(HelssoTokenModule, self).create_id_token(
             user, client, nonce, at_hash, request, scope)
 
-        (api_scope, api_aud, api_claims) = self._get_api_data(client, scope)
+        api_data = ApiScope.get_data_for_request(scope, client)
 
-        extended_scope = set(scope) | set(api_scope)
-        print(extended_scope)
+        extended_scope = set(scope) | set(api_data.required_scopes)
         userinfo = get_userinfo_by_scopes(user, extended_scope, client)
-        data.update(userinfo)
-        data.update(api_claims)
-        data['aud'] = [client.client_id] + api_aud
-        data['azp'] = client.client_id
-        return data
-
-    def _get_api_data(self, client, scope):
-        print()
-        print()
-        print('SCOPE ********************************: ', scope, '|||')
-        print()
-        print()
-        #import pdb; pdb.set_trace()
-        #import ipdb; ipdb.set_trace()
-        api_scopes = (
-            ApiScope.objects.by_identifiers(scope)
-            .allowed_for_client(client))
-        apis = {api_scope.api for api_scope in api_scopes}
-
-        # Collect scopes required by APIs
-        required_scopes = set(sum(
-            (list(api.required_scopes) for api in apis), []))
-
-        # Collect audiences
-        api_audiences = sorted(api.identifier for api in apis)
-
-        # Collect API scope claims
-        claims = defaultdict(list)
-        for api_scope in api_scopes:
-            field = api_scope.api.domain.identifier
-            claims[field].append(api_scope.relative_identifier)
-
-        return (required_scopes, api_audiences, claims)
+        payload.update(userinfo)
+        payload.update(api_data.authorization_claims)
+        payload['aud'] = [client.client_id] + api_data.audiences
+        payload['azp'] = client.client_id
+        return payload
 
     def client_id_from_id_token(self, id_token):
         payload = JWT().unpack(id_token).payload()
@@ -113,25 +84,37 @@ class ApiTokensScopeClaims(ScopeClaims):
 
 class CombinedScopeClaims(ScopeClaims):
     combined_scope_claims = [
-        ApiTokensScopeClaims,
+        StandardScopeClaims,
         GithubUsernameScopeClaims,
+        ApiTokensScopeClaims,
     ]
 
     @classmethod
     def get_scopes_info(cls, scopes=[]):
+        extended_scopes = cls._extend_scope(scopes)
         scopes_info_map = {}
         for claim_cls in cls.combined_scope_claims:
-            for info in claim_cls.get_scopes_info(scopes):
+            for info in claim_cls.get_scopes_info(extended_scopes):
                 scopes_info_map[info['scope']] = info
         return [
             scopes_info_map[scope]
-            for scope in scopes
+            for scope in extended_scopes
             if scope in scopes_info_map
         ]
+
+    @classmethod
+    def _extend_scope(cls, scopes):
+        api_data = ApiScope.get_data_for_request(scopes)
+        extended_scopes = list(scopes)
+        for scope in api_data.required_scopes:
+            if scope not in extended_scopes:
+                extended_scopes.append(scope)
+        return extended_scopes
 
     def create_response_dic(self):
         result = super(CombinedScopeClaims, self).create_response_dic()
         token = FakeToken.from_claims(self)
+        token.scope = self._extend_scope(token.scope)
         for claim_cls in self.combined_scope_claims:
             claim = claim_cls(token)
             result.update(claim.create_response_dic())
