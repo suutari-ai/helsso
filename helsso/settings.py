@@ -55,6 +55,7 @@ INSTALLED_APPS = (
 
     'adfs_provider',
     'hkijwt',
+    'django_extensions',
 )
 
 MIDDLEWARE_CLASSES = (
