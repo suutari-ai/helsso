@@ -18,7 +18,6 @@ class ADFSAttributeMapping(models.Model):
         ('primary_sid', _('Primary SID')),
         ('department_name', _('Department name')),
         ('email', _('Email')),
-        ('username', _('Username')),
         ('ad_groups', _('AD Groups')),
         ('first_name', _('First name')),
         ('last_name', _('Last name')),
