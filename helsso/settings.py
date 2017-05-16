@@ -139,6 +139,8 @@ STATICFILES_DIRS = (
 
 STATIC_URL = '/sso/static/'
 
+SITE_URL = 'https://api.hel.fi/sso'
+
 SITE_ID = 1
 
 PARLER_LANGUAGES = {SITE_ID: [{'code': code} for (code, name) in LANGUAGES]}
