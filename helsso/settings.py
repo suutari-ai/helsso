@@ -234,6 +234,9 @@ SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': ['email'],
         'VERIFIED_EMAIL': True,
+        'AUTH_PARAMS': {
+            'prompt': 'select_account',
+        },
     },
     'yletunnus': {
         'VERIFIED_EMAIL': True,
