@@ -11,6 +11,5 @@ django-allauth
 django-bootstrap3
 psycopg2
 raven
-pip-tools
 PyJWT
 cryptography
