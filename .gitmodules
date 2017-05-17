@@ -1,3 +1,0 @@
-[submodule "django-oidc-provider"]
-	path = django-oidc-provider
-	url = git@github.com:suutari-ai/django-oidc-provider.git

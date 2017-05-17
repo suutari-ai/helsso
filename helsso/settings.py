@@ -139,8 +139,7 @@ STATICFILES_DIRS = (
 
 STATIC_URL = '/sso/static/'
 
-#SITE_URL = 'https://api.hel.fi/sso'
-SITE_URL = 'http://localhost:8000'
+SITE_URL = 'https://api.hel.fi/sso'
 
 SITE_ID = 1
 

@@ -42,11 +42,13 @@ Things to note from that:
   client ID of the OIDC client requesting the token (usually an UI
   app) and the rest are the audiences of the backend APIs.  Backend
   APIs should check that their audience identifier is listed there.
+
 * ``azp`` (Authorized Party) contains the OIDC client's ID
-* API permissions are listed in claim named by the "API domain", in
-  the example this is ``https://api.hel.fi/auth``.  API domains are
-  stored as models and can be managed in Django Admin.  API backend
-  should use this claim to fine tune the permissions.
+
+* Authorized API scopes are listed in claim named by the "API domain",
+  in the example this is ``https://api.hel.fi/auth``.  API domains are
+  stored into the database and can be managed in Django Admin.  API
+  backend may use this claim to fine tune the permissions.
 
 API scopes
 ----------
@@ -77,4 +79,6 @@ might depend on additional OIDC scopes (e.g. ``profile``, ``email``, or
 
 * If user consent is requested, the automatically included scopes are
   also listed in the "consent screen".
-* Automatically added scopes are also included in the ID Token.
+
+* Claims data from the automatically added scopes is also included to
+  the ID Token.

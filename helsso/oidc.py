@@ -1,15 +1,9 @@
-import logging
-from collections import defaultdict
-
 from django.utils.translation import ugettext_lazy as _
-
-from hkijwt.models import ApiScope
 from jwkest.jwt import JWT
 from oidc_provider.lib.claims import ScopeClaims, StandardScopeClaims
 from oidc_provider.lib.utils.token import TokenModule
 
-
-LOG = logging.getLogger(__name__)
+from hkijwt.models import ApiScope
 
 
 class HelssoTokenModule(TokenModule):
@@ -64,7 +58,7 @@ class GithubUsernameScopeClaims(ScopeClaims):
         }
 
 
-class ApiTokensScopeClaims(ScopeClaims):
+class ApiAuthorizationScopeClaims(ScopeClaims):
     @classmethod
     def get_scopes_info(cls, scopes=[]):
         scopes_by_identifier = {
@@ -86,7 +80,7 @@ class CombinedScopeClaims(ScopeClaims):
     combined_scope_claims = [
         StandardScopeClaims,
         GithubUsernameScopeClaims,
-        ApiTokensScopeClaims,
+        ApiAuthorizationScopeClaims,
     ]
 
     @classmethod
